@@ -1,0 +1,13 @@
+[ubuntu]
+#192.168.1.56
+ubuntu.server.com
+
+[centos]
+#192.168.1.120
+centos.server.com
+
+[redhat]
+#192.168.1.25
+redhat.server.com
+
+`

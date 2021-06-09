@@ -1,0 +1,67 @@
+--- 
+ - name: Install pure ftp
+   package:
+    name: pure-ftpd
+    state: present
+##configre pure ftp
+# - name: configre pure ftp centos.
+#   copy:
+#      src: /config/pure-ftpd.conf
+#      dest: /etc/pure-ftpd/pure-ftpd.conf
+#      owner: root
+#      group: root
+#      mode: 0644
+ - name: configre pure ftp for red hat servers
+   lineinfile:
+      dest: "{{ item.dest }}"
+      regexp: "{{ item.regexp }}"
+      line: "{{ item.line }}"
+      backup: yes
+   with_items:
+      - dest: '/etc/pure-ftpd/pure-ftpd.conf'
+        regexp: '^[#]?[\s+]?PAMAuthentication\s+\D+' 
+        line: "#PAMAuthentication             yes"
+      - dest: '/etc/pure-ftpd/pure-ftpd.conf'
+        line: "NoAnonymous                 yes"
+        regexp: '^[#]?[\s+]?NoAnonymous\s+\S+'
+      - dest: '/etc/pure-ftpd/pure-ftpd.conf'
+        line: "PureDB                        /etc/pure-ftpd/pureftpd.pdb"
+        regexp: '^[#]?[\s+]?PureDB\s+\S+'  
+   when: ansible_facts['os_family'] == 'RedHat'
+
+ - name: configre pure-ftpd for ubuntu servers
+   lineinfile:
+      dest: "{{ item.dest }}"
+      line: "{{ item.line }}"
+      create: yes
+   with_items:
+      - {dest: '/etc/pure-ftpd/conf/PureDB', line: '/etc/pure-ftpd/pureftpd.pdb'}
+      - {dest: '/etc/pure-ftpd/conf/NoAnonymous', line: 'yes'}
+      - {dest: '/etc/pure-ftpd/conf/PAMAuthentication', line: 'no'}
+      - {dest: '/etc/pure-ftpd/pureftpd.pdb', line: ''}
+      - {dest: '/etc/pure-ftpd/pureftpd.passwd', line: ''}
+   when: ansible_facts['os_family'] == 'Debian'
+ - name: creat symbolic link
+   file:
+    src: "{{ item.dest }}"
+    dest: "{{ item.src }}"
+    state: link 
+   with_items:
+      - {dest: '/etc/pure-ftpd/conf/PureDB', src: '/etc/pure-ftpd/auth/PureDB'}
+      - {dest: '/etc/pure-ftpd/pureftpd.pdb', src: '/etc/pureftpd.pdb'}
+      - {dest: '/etc/pure-ftpd/pureftpd.passwd', src: '/etc/pureftpd.passwd'}
+   when: ansible_facts['os_family'] == 'Debian'
+ - name: ensure that pureftp is ruuning 
+   service: 
+     name: pure-ftpd 
+     state: started
+     enabled: yes 
+   notify:
+        restart pure-ftpd
+
+
+
+
+#to create user 
+#sudo pure-pw useradd test_name -u ftpuser -d /home/ftpusers/test_name
+#sudo pure-pw mkdb

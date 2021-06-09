@@ -1,0 +1,8 @@
+---
+# handlers file for nginx
+   - name: Attempt to restart nginx
+     service:
+         name: pure-ftpd
+         state: restarted
+     listen: "restart pure-ftpd"
+
